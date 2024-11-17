@@ -84,3 +84,17 @@ size_t Get_page_size(Page_allocator* page_allocator)
 
     return page_allocator->page_size_bytes;
 }
+
+void* Next_page(void* page)
+{
+    assert(page != NULL);
+
+    return (void*)((char*)((Page*)((char*)page - sizeof(Page)))->next_page + sizeof(Page));
+}
+
+void* Prev_page(void* page)
+{
+    assert(page != NULL);
+
+    return (void*)((char*)((Page*)((char*)page - sizeof(Page)))->prev_page + sizeof(Page));
+}
