@@ -5,22 +5,47 @@
 
 int main()
 {
-    Page_allocator* page_allocator = Page_allocator_ctor(128);
+    Pool_allocator* pool_allocator = Pool_allocator_ctor(8);
 
-    char* memory3 = (char*)Page_alloc(page_allocator);
-    char* memory1 = (char*)Page_alloc(page_allocator);
-    char* memory2 = (char*)Page_alloc(page_allocator);
-    Page_free(page_allocator, memory1);
-    Page_free(page_allocator, memory2);
-    Page_free(page_allocator, memory3);
-    char* memory4 = (char*)Page_alloc(page_allocator);
-    char* memory5 = (char*)Page_alloc(page_allocator);
-    Page_free(page_allocator, memory5);
-    Page_free(page_allocator, memory4);
-    char* memory6 = (char*)Page_alloc(page_allocator);
-    Page_free(page_allocator, memory6);
-    char* memory7 = (char*)Page_alloc(page_allocator);
-    Page_free(page_allocator, memory7);
+    char* memory1 = (char*)Pool_alloc(pool_allocator);
+    char* memory2 = (char*)Pool_alloc(pool_allocator);
+    // fprintf(stderr, "\n\n");
+    // fprintf(stderr, "memory1 = %p\nmemory2 = %p\n", memory1, memory2);
+    Pool_free(pool_allocator, memory1);
+    // fprintf(stderr, "--------------------------\n");
+    // fprintf(stderr, "memory1 = %p\nmemory2 = %p\n", memory1, memory2);
+    Pool_free(pool_allocator, memory2);
+    // fprintf(stderr, "--------------------------\n");
+    // fprintf(stderr, "memory1 = %p\nmemory2 = %p\n", memory1, memory2);
+    //memory2 = (char*)Pool_alloc(pool_allocator);
 
-    Page_allocator_dtor(page_allocator);
+    // char* memory4 = (char*)Pool_alloc(pool_allocator);
+    // Pool_free(pool_allocator, memory3);
+    // char* memory5 = (char*)Pool_alloc(pool_allocator);
+    // char* memory6 = (char*)Pool_alloc(pool_allocator);
+    // Pool_free(pool_allocator, memory1);
+    // Pool_free(pool_allocator, memory5);
+
+    Pool_allocator_dtor(pool_allocator);
+
+
+
+    // Page_allocator* page_allocator = Page_allocator_ctor(128);
+
+    // char* memory3 = (char*)Page_alloc(page_allocator);
+    // char* memory1 = (char*)Page_alloc(page_allocator);
+    // char* memory2 = (char*)Page_alloc(page_allocator);
+    // Page_free(page_allocator, memory1);
+    // Page_free(page_allocator, memory2);
+    // Page_free(page_allocator, memory3);
+    // char* memory4 = (char*)Page_alloc(page_allocator);
+    // char* memory5 = (char*)Page_alloc(page_allocator);
+    // Page_free(page_allocator, memory5);
+    // Page_free(page_allocator, memory4);
+    // char* memory6 = (char*)Page_alloc(page_allocator);
+    // Page_free(page_allocator, memory6);
+    // char* memory7 = (char*)Page_alloc(page_allocator);
+    // Page_free(page_allocator, memory7);
+
+    // Page_allocator_dtor(page_allocator);
 }
