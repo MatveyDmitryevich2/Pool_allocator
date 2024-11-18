@@ -1,7 +1,7 @@
 #ifndef PAGE_ALLOCATOR_H
 #define PAGE_ALLOCATOR_H
 
-#include <stddef.h>
+#include <stdio.h>
 
 struct Page_allocator;
 
