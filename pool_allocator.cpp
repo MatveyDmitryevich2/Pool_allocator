@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <stddef.h>
 
-static const size_t SIZE_LIST = 4;
+static const size_t SIZE_LIST = 3;
 
 struct Elem_list
 {
@@ -80,10 +80,39 @@ void* Pool_alloc(Pool_allocator* pool_allocator)
 {
     assert(pool_allocator != NULL);
 
+    if (pool_allocator->chunk_free->next == pool_allocator->chunk_free)
+    {
+        fprintf(stderr, "\n------------------------СРАБОТАЛА ПРОВЕРКА-----------------\n");
+    }
     //NOTE проверка на создание новой page
 
+    fprintf(stderr, "\n\n\n\n\n\n------------------------ДО-------------------\n");
+    fprintf(stderr, "pool_allocator->chunk_free = %p\n", pool_allocator->chunk_free);
+    fprintf(stderr, "pool_allocator->chunk_free->prev = %p\n", pool_allocator->chunk_free->prev);
+    fprintf(stderr, "pool_allocator->chunk_free->prev->next = %p\n", pool_allocator->chunk_free->prev->next);
+    fprintf(stderr, "pool_allocator->chunk_free->next->prev = %p\n", pool_allocator->chunk_free->next->prev);
+    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
+    pool_allocator->chunk_free->prev->next = pool_allocator->chunk_free->next;
+    fprintf(stderr, "\n\n\n\n\n\n-----------------------ПЕРВАЯ ХУИТА--------------------\n");
+    fprintf(stderr, "pool_allocator->chunk_free = %p\n", pool_allocator->chunk_free);
+    fprintf(stderr, "pool_allocator->chunk_free->prev = %p\n", pool_allocator->chunk_free->prev);
+    fprintf(stderr, "pool_allocator->chunk_free->prev->next = %p\n", pool_allocator->chunk_free->prev->next);
+    fprintf(stderr, "pool_allocator->chunk_free->next->prev = %p\n", pool_allocator->chunk_free->next->prev);
+    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
+    pool_allocator->chunk_free->next->prev = pool_allocator->chunk_free->prev;
+    fprintf(stderr, "\n\n\n\n\n\n-----------------------ВТОРАЯ ХУИТА--------------------\n");
+    fprintf(stderr, "pool_allocator->chunk_free = %p\n", pool_allocator->chunk_free);
+    fprintf(stderr, "pool_allocator->chunk_free->prev = %p\n", pool_allocator->chunk_free->prev);
+    fprintf(stderr, "pool_allocator->chunk_free->prev->next = %p\n", pool_allocator->chunk_free->prev->next);
+    fprintf(stderr, "pool_allocator->chunk_free->next->prev = %p\n", pool_allocator->chunk_free->next->prev);
+    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
+
     Elem_list* chunk_free_memory = (Elem_list*)((char*)(pool_allocator->chunk_free) + sizeof(Elem_list));
+
+    pool_allocator->chunk_free->prev = NULL; //зануление prev для прошлого фри
+    Elem_list** buffer = &(pool_allocator->chunk_free->next);
     pool_allocator->chunk_free = pool_allocator->chunk_free->next;
+    *buffer = NULL; //зануление next для прошлого фри
 
     return chunk_free_memory;
 }
@@ -94,65 +123,10 @@ void Pool_free(Pool_allocator* pool_allocator, void* elem_to_delete)
 
     Elem_list* chunk_to_delete = (Elem_list*)((char*)elem_to_delete - sizeof(Elem_list));
 
+    chunk_to_delete->prev = pool_allocator->chunk_free->prev;
+    pool_allocator->chunk_free->prev->next = chunk_to_delete;
+    pool_allocator->chunk_free->prev = chunk_to_delete;
+    chunk_to_delete->next = pool_allocator->chunk_free;
 
-    //fprintf(stderr, "chunk_to_delete = %p\nchunk_to_delete->next->prev = %p\n", chunk_to_delete, chunk_to_delete->next->prev);
-    chunk_to_delete->next->prev = chunk_to_delete->prev;
-    //fprintf(stderr, "chunk_to_delete = %p\nchunk_to_delete->next->prev = %p\n", chunk_to_delete, chunk_to_delete->next->prev);
-    chunk_to_delete->prev->next = chunk_to_delete->next;
-
-
-    fprintf(stderr, "\n\n\n\n\n\n\n\n\n-------------------------------------------\n");
-    fprintf(stderr, "chunk_to_delete->prev = %p\n", chunk_to_delete->prev);
-    fprintf(stderr, "pool_allocator->chunk_free = %p\n", pool_allocator->chunk_free);
-    fprintf(stderr, "chunk_to_delete->next = %p\n", chunk_to_delete->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next->prev = %p\n", pool_allocator->chunk_free->next->prev);
-    fprintf(stderr, "chunk_to_delete = %p\n", chunk_to_delete);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-
-    chunk_to_delete->prev = pool_allocator->chunk_free;
-
-    fprintf(stderr, "-------------------------------------------\n");
-    fprintf(stderr, "chunk_to_delete->prev = %p\n", chunk_to_delete->prev);
-    fprintf(stderr, "pool_allocator->chunk_free = %p\n", pool_allocator->chunk_free);
-    fprintf(stderr, "chunk_to_delete->next = %p\n", chunk_to_delete->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next->prev = %p\n", pool_allocator->chunk_free->next->prev);
-    fprintf(stderr, "chunk_to_delete = %p\n", chunk_to_delete);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-
-    chunk_to_delete->next = pool_allocator->chunk_free->next;
-    
-    fprintf(stderr, "-------------------------------------------\n");
-    fprintf(stderr, "chunk_to_delete->prev = %p\n", chunk_to_delete->prev);
-    fprintf(stderr, "pool_allocator->chunk_free = %p\n", pool_allocator->chunk_free);
-    fprintf(stderr, "chunk_to_delete->next = %p\n", chunk_to_delete->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next->prev = %p\n", pool_allocator->chunk_free->next->prev);
-    fprintf(stderr, "chunk_to_delete = %p\n", chunk_to_delete);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-
-    pool_allocator->chunk_free->next->prev = chunk_to_delete;
-    
-    fprintf(stderr, "-------------------------------------------\n");
-    fprintf(stderr, "chunk_to_delete->prev = %p\n", chunk_to_delete->prev);
-    fprintf(stderr, "pool_allocator->chunk_free = %p\n", pool_allocator->chunk_free);
-    fprintf(stderr, "chunk_to_delete->next = %p\n", chunk_to_delete->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next->prev = %p\n", pool_allocator->chunk_free->next->prev);
-    fprintf(stderr, "chunk_to_delete = %p\n", chunk_to_delete);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-
-    pool_allocator->chunk_free->next = chunk_to_delete;
-    
-    fprintf(stderr, "-------------------------------------------\n");
-    fprintf(stderr, "chunk_to_delete->prev = %p\n", chunk_to_delete->prev);
-    fprintf(stderr, "pool_allocator->chunk_free = %p\n", pool_allocator->chunk_free);
-    fprintf(stderr, "chunk_to_delete->next = %p\n", chunk_to_delete->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-    fprintf(stderr, "pool_allocator->chunk_free->next->prev = %p\n", pool_allocator->chunk_free->next->prev);
-    fprintf(stderr, "chunk_to_delete = %p\n", chunk_to_delete);
-    fprintf(stderr, "pool_allocator->chunk_free->next = %p\n", pool_allocator->chunk_free->next);
-
-    //pool_allocator->chunk_free = (Elem_list*)elem_to_delete; ЧО ЗА ХУЙНЯ
+    pool_allocator->chunk_free = chunk_to_delete;
 }
