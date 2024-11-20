@@ -21,8 +21,10 @@ struct Page_allocator
 Page_allocator* Page_allocator_ctor(size_t page_size_bytes)
 {
     Page_allocator* page_allocator = (Page_allocator*)calloc(1, sizeof(Page_allocator));
+    assert(page_allocator != NULL);
 
     page_allocator->fake_page = (Page*)calloc(1, sizeof(Page) + page_allocator->page_size_bytes);
+    assert(page_allocator->fake_page != NULL);
     page_allocator->fake_page->next_page = page_allocator->fake_page;
     page_allocator->fake_page->prev_page = page_allocator->fake_page;
 
@@ -36,24 +38,16 @@ void Page_allocator_dtor(Page_allocator* page_allocator)
 {
     assert(page_allocator != NULL);
 
-    free(page_allocator->fake_page);
+    Page* page = page_allocator->fake_page;
+    for (int i = page_allocator->n_pages; i > 1; i--)
+    {
+        free(page->prev_page);
+        page = page->next_page;
+    }
+
+    free(page->prev_page);
+    free(page);
     free(page_allocator);
-}
-
-void* Page_alloc(Page_allocator* page_allocator)
-{
-    assert(page_allocator != NULL);
-
-    Page* page = (Page*)calloc(1, sizeof(Page) + page_allocator->page_size_bytes);
-
-    page->next_page = page_allocator->fake_page;
-    page->prev_page = page_allocator->fake_page->prev_page;
-    page_allocator->fake_page->prev_page->next_page = page;
-    page_allocator->fake_page->prev_page = page;
-    
-    page_allocator->n_pages++;
-
-    return (void*)((char*)page + sizeof(Page));
 }
 
 void Page_free(Page_allocator* page_allocator, void* page)
@@ -70,6 +64,24 @@ void Page_free(Page_allocator* page_allocator, void* page)
 
     page_allocator->n_pages--;
 }
+
+void* Page_alloc(Page_allocator* page_allocator)
+{
+    assert(page_allocator != NULL);
+
+    Page* page = (Page*)calloc(1, sizeof(Page) + page_allocator->page_size_bytes);
+    assert(page != NULL);
+
+    page->next_page = page_allocator->fake_page;
+    page->prev_page = page_allocator->fake_page->prev_page;
+    page_allocator->fake_page->prev_page->next_page = page;
+    page_allocator->fake_page->prev_page = page;
+    
+    page_allocator->n_pages++;
+
+    return (void*)((char*)page + sizeof(Page));
+}
+
 
 size_t Get_n_pages(Page_allocator* page_allocator)
 {
